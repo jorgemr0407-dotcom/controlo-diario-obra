@@ -9,7 +9,7 @@
 <script>
 /* ---- arranque: usa a versão descarregada mais recente, se existir e se a anterior arrancou bem ---- */
 (function(){
-  var VER='1.0.3';
+  var VER='1.0.4';
   function cmp(a,b){a=String(a).split('.').map(Number);b=String(b).split('.').map(Number);for(var i=0;i<4;i++){var d=(a[i]||0)-(b[i]||0);if(d)return d<0?-1:1;}return 0;}
   window.CDO_VER=VER;window.cdoCmp=cmp;
   try{
@@ -87,6 +87,9 @@ select,input,textarea{width:100%;background:var(--card2);color:var(--tx);border:
 <script>
 if(!window.__cdoStop)(function(){
 'use strict';
+/* remove elementos duplicados deixados pelo resto da página antiga após uma atualização */
+(function(){function dd(){var seen={};Array.prototype.slice.call(document.body.children).forEach(function(e){var k=e.tagName==='HEADER'?'header':(e.id||'');if(!k)return;if(seen[k])e.parentNode.removeChild(e);else seen[k]=1;});}
+dd();try{new MutationObserver(dd).observe(document.body,{childList:true});}catch(e){}document.addEventListener('DOMContentLoaded',dd);window.addEventListener('load',dd);})();
 var REPO='jorgemr0407-dotcom/controlo-diario-obra',KEY='cdo_movel';
 var VER=window.CDO_VER,cmp=window.cdoCmp;
 function $(id){return document.getElementById(id);}
