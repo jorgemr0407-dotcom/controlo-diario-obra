@@ -1,0 +1,7 @@
+Controlo Obra (Android)
+
+Aplicação para marcar, no telemóvel, a posição (PK) onde a camada de desgaste vai.
+- O ficheiro APK é construído automaticamente pelo GitHub (separador Actions).
+- Descarrega-o em: https://github.com/jorgemr0407-dotcom/controlo-diario-obra/releases/tag/movel-apk
+- Atualizações do ecrã e dos cálculos chegam sozinhas (pasta movel/www e movel/versao.json).
+- Mudanças que exigem novo APK: ícone, permissões, plugins.

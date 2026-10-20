@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#12151a">
+<meta name="cdo-movel-app" content="1">
+<title>Controlo Obra</title>
+<script>
+/* ---- arranque: usa a versão descarregada mais recente, se existir e se a anterior arrancou bem ---- */
+(function(){
+  var VER='1.0.0';
+  function cmp(a,b){a=String(a).split('.').map(Number);b=String(b).split('.').map(Number);for(var i=0;i<4;i++){var d=(a[i]||0)-(b[i]||0);if(d)return d<0?-1:1;}return 0;}
+  window.CDO_VER=VER;window.cdoCmp=cmp;
+  try{
+    var tr=window.__cdoLoaded?null:localStorage.getItem('cdo_try');
+    if(tr){localStorage.setItem('cdo_bad',tr);localStorage.removeItem('cdo_try');localStorage.removeItem('cdo_upd');}
+    var u=JSON.parse(localStorage.getItem('cdo_upd')||'null');
+    if(u&&u.html&&u.v!==localStorage.getItem('cdo_bad')&&cmp(u.v,VER)>0&&!window.__cdoLoaded){
+      window.__cdoLoaded=1;localStorage.setItem('cdo_try',u.v);
+      document.open();document.write(u.html);document.close();window.__cdoStop=1;
+    }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{--bg:#12151a;--card:#1b2028;--card2:#232a34;--line:#2f3743;--tx:#f1efe8;--mut:#9aa3b0;--y:#f5b800;--y2:#ffc72c;--on:#17140a;--ok:#2fb37a;--bad:#e5645f;--warn:#f0a030;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+header{background:var(--y);color:var(--on);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+header h1{font-size:18px;margin:0;font-weight:800;letter-spacing:.2px}
+header small{font-weight:600;opacity:.8}
+main{flex:1;overflow-y:auto;padding:14px 14px 96px;-webkit-overflow-scrolling:touch}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav button{flex:1;background:none;border:0;color:var(--mut);font:700 13px system-ui;padding:12px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button b{font-size:20px;line-height:1}
+nav button[aria-selected=true]{color:var(--y)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:15px;color:var(--y);text-transform:uppercase;letter-spacing:.5px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.big{font-size:34px;font-weight:800;line-height:1.1}
+.mut{color:var(--mut)}.sm{font-size:13px}
+.chip{display:inline-block;border-radius:99px;padding:3px 10px;font-size:13px;font-weight:700;background:var(--card2)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+select,input,textarea{width:100%;background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:12px;font:16px system-ui}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;padding:13px 6px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--tx);font:700 15px system-ui}
+.seg button[aria-pressed=true]{background:var(--y);color:var(--on);border-color:var(--y)}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:16px;font:800 17px system-ui;background:var(--y);color:var(--on)}
+.btn.sec{background:var(--card2);color:var(--tx);border:1px solid var(--line)}
+.btn.danger{background:#3a1f21;color:#ff9c97;border:1px solid #6b3033}
+.btn:disabled{opacity:.45}
+.mark{width:100%;padding:24px 10px;font-size:21px;border-radius:18px}
+.btns{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.item{display:flex;gap:10px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .pk{font-size:20px;font-weight:800;min-width:92px}
+.item .mid{flex:1;min-width:0}
+.item .mid div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day{margin:14px 2px 4px;color:var(--y);font-weight:800;font-size:14px}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--y2);color:var(--on);padding:12px 18px;border-radius:12px;font-weight:800;z-index:20;max-width:92vw;text-align:center}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:30;display:flex;align-items:flex-end}
+.sheet>div{background:var(--bg);width:100%;max-height:92vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom));border-top:3px solid var(--y)}
+.step{display:flex;gap:6px;margin-top:8px}
+.step button{flex:1;padding:12px 0;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--tx);font:800 16px system-ui}
+.diff{background:var(--card2);border-radius:12px;padding:10px 12px;margin-top:12px;font-size:15px}
+.diff div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.diff .ch{color:var(--y2);font-weight:800}
+.tag{font-size:11px;font-weight:800;border-radius:6px;padding:1px 6px;background:#3b3216;color:var(--y2)}
+.empty{color:var(--mut);text-align:center;padding:26px 6px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><h1>Controlo Obra</h1><small id="hv"></small></header>
+<main id="main"></main>
+<nav id="nav" role="tablist">
+  <button role="tab" data-t="marcar" aria-selected="true"><b>◎</b>Marcar</button>
+  <button role="tab" data-t="lista" aria-selected="false"><b>☰</b>Marcações</button>
+  <button role="tab" data-t="dados" aria-selected="false"><b>⇅</b>Dados</button>
+</nav>
+<div id="toast" class="toast" hidden></div>
+<div id="sheet" class="sheet" hidden></div>
+<script>
+if(!window.__cdoStop)(function(){
+'use strict';
+var REPO='jorgemr0407-dotcom/controlo-diario-obra',KEY='cdo_movel';
+var VER=window.CDO_VER,cmp=window.cdoCmp;
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function pad(n){return (n<10?'0':'')+n;}
+function fmt(x,d){return Number(x).toLocaleString('pt-PT',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});}
+function sg(x){return (x>0?'+':x<0?'−':'')+fmt(Math.abs(x),0);}
+function pk(m){var r=Math.round(m);return Math.floor(r/1000)+'+'+String(r%1000).padStart(3,'0');}
+function dstr(t){var d=new Date(t);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function tstr(t){var d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes());}
+function fdl(s){var p=String(s).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s;}
+function uid(){return 'm'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+var LADO={E:'Esquerdo',D:'Direito',T:'Largura total'};
+
+/* ---------- estado ---------- */
+var S=null;
+function vazio(){return {v:1,dev:uid(),obra:'',trocos:[],frentes:[],equipas:{},trocosEm:'',marks:[],envioTs:0,cfg:{tr:'',lado:'E',eq:''}};}
+function load(){try{S=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){S=null;}if(!S||!S.marks)S=vazio();S.cfg=S.cfg||{tr:'',lado:'E',eq:''};}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Não consegui guardar no telemóvel (memória cheia?).');}}
+var tt=null;
+function toast(m){var t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true;},2600);}
+function buzz(){try{navigator.vibrate&&navigator.vibrate(60);}catch(e){}}
+
+/* ---------- geometria ---------- */
+var GEO={};
+function prep(){
+  GEO={};
+  S.trocos.forEach(function(t){
+    if(!t.g||t.g.length<2)return;
+    var lat0=t.g[0][1],kx=Math.cos(lat0*Math.PI/180),P=t.g.map(function(p){return [(p[0]-t.g[0][0])*111320*kx,(p[1]-lat0)*110574];}),cum=[0];
+    for(var i=1;i<P.length;i++)cum.push(cum[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));
+    GEO[t.id]={P:P,cum:cum,L:cum[cum.length-1],kx:kx,o:t.g[0],lat0:lat0};
+  });
+}
+function proj(t,lat,lon){
+  var g=GEO[t.id];if(!g||!(g.L>0))return null;
+  var x=(lon-g.o[0])*111320*g.kx,y=(lat-g.lat0)*110574,best=null;
+  for(var i=1;i<g.P.length;i++){
+    var a=g.P[i-1],b=g.P[i],dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy,u=l?((x-a[0])*dx+(y-a[1])*dy)/l:0;u=Math.max(0,Math.min(1,u));
+    var d=Math.hypot(x-a[0]-u*dx,y-a[1]-u*dy);
+    if(!best||d<best.d)best={d:d,s:g.cum[i-1]+u*Math.sqrt(l)};
+  }
+  var Lm=t.fim-t.ini;
+  return {d:best.d,s:best.s,pk:t.ini+(Lm>0?best.s/g.L*Lm:best.s)};
+}
+function melhor(lat,lon,pref){
+  var r=null;
+  S.trocos.forEach(function(t){var p=proj(t,lat,lon);if(!p)return;if(!r||p.d<r.p.d-0.5||(pref&&t.id===pref&&p.d<r.p.d+15))r={t:t,p:p};});
+  return r;
+}
+function troco(id){for(var i=0;i<S.trocos.length;i++)if(S.trocos[i].id===id)return S.trocos[i];return null;}
+
+/* ---------- cadeia de marcações por frente (troço + lado) ---------- */
+function ativas(){return S.marks.filter(function(m){return !m.anulada;});}
+function frente(tr,lado){var l=lado==='T'?'E':lado,f=null;S.frentes.forEach(function(x){if(x.tr===tr&&x.lado===l)f=x;});return f;}
+function cadeia(marks){
+  /* devolve {id:{base,delta}}; base = marcação anterior da mesma frente, ou o ponto conhecido do PC */
+  var out={},por={};
+  marks.filter(function(m){return !m.anulada;}).forEach(function(m){var k=m.tr+'|'+(m.lado==='T'?'E':m.lado);(por[k]=por[k]||[]).push(m);});
+  Object.keys(por).forEach(function(k){
+    var a=por[k].slice().sort(function(x,y){return x.ts-y.ts;}),f=frente(a[0].tr,a[0].lado),base=f?f.pk:null;
+    a.forEach(function(m){out[m.id]={base:base,delta:base==null?null:m.pk-base};base=m.pk;});
+  });
+  return out;
+}
+
+/* ---------- GPS ---------- */
+var POS=null,GPSERR='',watch=null;
+function plug(n){var C=window.Capacitor;return C&&C.Plugins&&C.Plugins[n]&&C.isNativePlatform&&C.isNativePlatform()?C.Plugins[n]:null;}
+function gpsOn(){
+  var G=plug('Geolocation');
+  function got(p){if(!p||!p.coords)return;POS={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy,ts:Date.now()};GPSERR='';if(tab==='marcar')liveUpd();}
+  function err(e){GPSERR=(e&&e.message)||'Sem sinal GPS';liveUpd();}
+  if(G){
+    G.requestPermissions().then(function(){return G.watchPosition({enableHighAccuracy:true,timeout:20000,maximumAge:0},function(p,e){if(e)err(e);else got(p);});}).then(function(id){watch=id;}).catch(err);
+  }else if(navigator.geolocation){
+    watch=navigator.geolocation.watchPosition(got,function(e){err({message:e.code===1?'Permissão de localização recusada':'Sem sinal GPS'});},{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+  }else GPSERR='Este dispositivo não tem GPS';
+}
+
+/* ---------- ecrãs ---------- */
+var tab='marcar';
+function show(t){tab=t;[].forEach.call($('nav').children,function(b){b.setAttribute('aria-selected',b.getAttribute('data-t')===t?'true':'false');});render();$('main').scrollTop=0;}
+function render(){
+  if(tab==='marcar')rMarcar();else if(tab==='lista')rLista();else rDados();
+}
+function posInfo(){
+  if(!POS)return null;
+  var pref=S.cfg.tr,r=melhor(POS.lat,POS.lon,S.cfg.auto===false?pref:pref);
+  return r;
+}
+function selTroco(){
+  /* troço efetivo: o escolhido à mão, ou o mais próximo do GPS */
+  var info=posInfo();
+  if(S.cfg.man&&troco(S.cfg.tr))return {t:troco(S.cfg.tr),p:POS?proj(troco(S.cfg.tr),POS.lat,POS.lon):null,man:true};
+  return info?{t:info.t,p:info.p,man:false}:null;
+}
+function rMarcar(){
+  var h='';
+  if(!S.trocos.length){
+    h+='<div class="card"><h2>Falta carregar os troços</h2><p class="mut">Abre o separador <b>Dados</b> e carrega o ficheiro de troços que a aplicação do PC exporta («Exportar troços para o telemóvel»).</p><div class="btns"><button class="btn" data-go="dados">Ir para Dados</button></div></div>';
+    $('main').innerHTML=h;return;
+  }
+  h+='<div class="card"><h2>Onde estou</h2><div id="live"></div></div>';
+  h+='<div class="btns" style="margin:0 0 12px"><button class="btn mark" id="b-marcar">MARCAR POSIÇÃO AGORA</button></div><div id="aviso"></div>';
+  h+='<div class="card"><label style="margin-top:0">Troço</label><select id="s-tr"><option value="">Automático (mais próximo)</option>'+S.trocos.slice().sort(function(a,b){return String(a.cod).localeCompare(String(b.cod),'pt',{numeric:true});}).map(function(t){return '<option value="'+esc(t.id)+'"'+(S.cfg.man&&S.cfg.tr===t.id?' selected':'')+'>'+esc(t.cod)+' · '+esc(t.via)+'</option>';}).join('')+'</select>';
+  h+='<label>Lado</label><div class="seg" id="s-lado">'+['E','D','T'].map(function(l){return '<button data-l="'+l+'" aria-pressed="'+(S.cfg.lado===l)+'">'+({E:'Esquerdo',D:'Direito',T:'Total'}[l])+'</button>';}).join('')+'</div>';
+  var eqs=Object.keys(S.equipas||{});
+  if(eqs.length)h+='<label>Equipa</label><select id="s-eq"><option value="">—</option>'+eqs.map(function(k){return '<option value="'+esc(k)+'"'+(S.cfg.eq===k?' selected':'')+'>'+esc(S.equipas[k])+'</option>';}).join('')+'</select>';
+  h+='<label>Nota (opcional)</label><input id="s-nota" type="text" maxlength="120" placeholder="ex.: fim da camada às 11h">';
+  h+='</div>';
+  var u=ativas().slice().sort(function(a,b){return b.ts-a.ts;})[0];
+  if(u){var c=cadeia(S.marks)[u.id],t=troco(u.tr);h+='<div class="card" style="margin-top:12px"><h2>Última marcação</h2><div class="row"><span class="big">'+pk(u.pk)+'</span><span class="mut">'+esc(t?t.cod+' · '+t.via:'?')+' · '+LADO[u.lado]+'<br>'+fdl(u.data)+' às '+tstr(u.ts)+(c&&c.delta!=null?' · avanço '+sg(c.delta)+' m':'')+'</span></div></div>';}
+  $('main').innerHTML=h;liveUpd();
+}
+function liveUpd(){
+  var L=$('live');if(!L||tab!=='marcar')return;
+  var s='';
+  if(!POS){s='<div class="mut">'+(GPSERR?'<span class="bad">'+esc(GPSERR)+'</span>':'A procurar sinal GPS…')+'</div>';}
+  else{
+    var a=Math.round(POS.acc),cls=a<=10?'ok':a<=25?'warn':'bad',sel=selTroco();
+    s='<div class="row"><span class="chip '+cls+'">GPS ±'+a+' m</span><span class="chip">'+POS.lat.toFixed(5)+', '+POS.lon.toFixed(5)+'</span></div>';
+    if(sel&&sel.p){
+      var fora=sel.p.d>80;
+      s+='<div class="big" style="margin-top:8px">PK '+pk(sel.p.pk)+'</div><div class="mut">'+esc(sel.t.cod+' · '+sel.t.via)+' · a '+Math.round(sel.p.d)+' m do eixo'+(fora?' <b class="bad">· fora do troço</b>':'')+'</div>';
+      var f=frente(sel.t.id,S.cfg.lado),ult=lastPk(sel.t.id,S.cfg.lado);
+      if(ult!=null)s+='<div class="sm mut" style="margin-top:6px">Ponto anterior desta frente: PK '+pk(ult.pk)+' ('+ult.q+') · avanço até aqui <b>'+sg(sel.p.pk-ult.pk)+' m</b></div>';
+    }else s+='<div class="mut" style="margin-top:8px">Sem troço ao alcance.</div>';
+  }
+  L.innerHTML=s;
+}
+function lastPk(tr,lado){
+  var l=lado==='T'?'E':lado,a=ativas().filter(function(m){return m.tr===tr&&(m.lado==='T'?'E':m.lado)===l;}).sort(function(x,y){return y.ts-x.ts;})[0];
+  if(a)return {pk:a.pk,q:'marcação de '+fdl(a.data)+' '+tstr(a.ts)};
+  var f=frente(tr,lado);return f?{pk:f.pk,q:'registo do PC'+(f.data?' de '+fdl(f.data):'')}:null;
+}
+function marcar(force){
+  var sel=selTroco(),av=$('aviso');
+  if(!POS||!sel||!sel.p){av.innerHTML='<div class="card"><span class="bad">Ainda não há posição GPS ou troço. Espera uns segundos.</span></div>';return;}
+  if(!force&&(POS.acc>25||sel.p.d>80)){
+    av.innerHTML='<div class="card"><b class="warn">'+(sel.p.d>80?'Estás a '+Math.round(sel.p.d)+' m do eixo do troço. ':'')+(POS.acc>25?'Precisão fraca (±'+Math.round(POS.acc)+' m). ':'')+'</b>Marcar mesmo assim?<div class="btns"><button class="btn" id="b-forcar">Marcar mesmo assim</button><button class="btn sec" id="b-canc">Cancelar</button></div></div>';return;
+  }
+  av.innerHTML='';
+  var now=Date.now(),m={id:uid(),tr:sel.t.id,cod:sel.t.cod,via:sel.t.via,lado:S.cfg.lado,pk:Math.round(sel.p.pk*10)/10,lat:POS.lat,lon:POS.lon,prec:Math.round(POS.acc),ts:now,data:dstr(now),eq:S.cfg.eq||'',nota:($('s-nota')&&$('s-nota').value.trim())||'',orig:{tr:sel.t.id,lado:S.cfg.lado,pk:Math.round(sel.p.pk*10)/10,ts:now},ed:0,anulada:false,dist:Math.round(sel.p.d)};
+  S.marks.push(m);save();buzz();toast('Marcado: PK '+pk(m.pk));rMarcar();
+}
+
+function rLista(){
+  var a=S.marks.slice().sort(function(x,y){return y.ts-x.ts;}),ch=cadeia(S.marks),h='';
+  var pend=S.marks.filter(function(m){return (m.edTs||m.ts)>S.envioTs;}).length;
+  h+='<div class="card"><div class="row" style="justify-content:space-between"><span><b>'+ativas().length+'</b> marcações</span><span class="chip '+(pend?'warn':'ok')+'">'+(pend?pend+' por enviar ao PC':'tudo enviado')+'</span></div></div>';
+  if(!a.length)h+='<div class="empty">Ainda não marcaste nenhuma posição.</div>';
+  var dia='';
+  a.forEach(function(m){
+    if(m.data!==dia){dia=m.data;h+='<div class="day">'+fdl(dia)+'</div>';}
+    var c=ch[m.id],t=troco(m.tr);
+    h+='<div class="item" data-id="'+m.id+'" style="'+(m.anulada?'opacity:.45':'')+'"><div class="pk">'+pk(m.pk)+'</div><div class="mid"><div>'+esc(t?t.cod+' · '+t.via:m.cod)+' · '+LADO[m.lado]+'</div><div class="sm mut">'+tstr(m.ts)+(c&&c.delta!=null&&!m.anulada?' · avanço '+sg(c.delta)+' m':'')+' · ±'+m.prec+' m'+(m.anulada?' · anulada':'')+'</div></div>'+(m.ed?'<span class="tag">editada</span>':'')+'<span class="mut" style="font-size:22px">›</span></div>';
+  });
+  $('main').innerHTML='<div>'+h+'</div>';
+}
+
+/* ---------- edição ---------- */
+var ED=null;
+function abrir(id){
+  var m=S.marks.filter(function(x){return x.id===id;})[0];if(!m)return;
+  ED={id:id,tr:m.tr,lado:m.lado,pk:m.pk,eq:m.eq||'',nota:m.nota||'',hora:tstr(m.ts),anul:!!m.anulada,conf:false};
+  drawSheet();
+}
+function drawSheet(){
+  var m=S.marks.filter(function(x){return x.id===ED.id;})[0],sh=$('sheet'),t=troco(ED.tr);
+  var h='<div><div class="row" style="justify-content:space-between"><b style="font-size:18px">Editar marcação</b><button class="btn sec" id="e-x" style="width:auto;padding:8px 14px">Fechar</button></div>';
+  h+='<div class="sm mut">Marcada a '+fdl(m.data)+' às '+tstr(m.ts)+' · GPS ±'+m.prec+' m</div>';
+  h+='<label>Troço</label><select id="e-tr">'+S.trocos.map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id===ED.tr?' selected':'')+'>'+esc(x.cod)+' · '+esc(x.via)+'</option>';}).join('')+'</select>';
+  h+='<label>Lado</label><div class="seg" id="e-lado">'+['E','D','T'].map(function(l){return '<button data-l="'+l+'" aria-pressed="'+(ED.lado===l)+'">'+({E:'Esquerdo',D:'Direito',T:'Total'}[l])+'</button>';}).join('')+'</div>';
+  h+='<label>PK (metros) <b id="e-pkt" style="color:var(--y)">= PK '+pk(ED.pk)+'</b></label><input id="e-pk" type="number" inputmode="decimal" step="1" value="'+Math.round(ED.pk*10)/10+'">';
+  h+='<div class="step"><button data-d="-10">−10</button><button data-d="-1">−1</button><button data-d="1">+1</button><button data-d="10">+10</button></div>';
+  var eqs=Object.keys(S.equipas||{});
+  if(eqs.length)h+='<label>Equipa</label><select id="e-eq"><option value="">—</option>'+eqs.map(function(k){return '<option value="'+esc(k)+'"'+(ED.eq===k?' selected':'')+'>'+esc(S.equipas[k])+'</option>';}).join('')+'</select>';
+  h+='<label>Nota</label><input id="e-nota" type="text" maxlength="120" value="'+esc(ED.nota)+'">';
+  h+='<div class="diff" id="e-diff"></div>';
+  h+='<div class="btns"><button class="btn" id="e-ok">Guardar alterações</button><button class="btn danger" id="e-del">'+(ED.anul?'Repor marcação':ED.conf?'Toca outra vez para anular':'Anular marcação')+'</button></div></div>';
+  sh.innerHTML=h;sh.hidden=false;diff();
+}
+function diffRows(){
+  /* o que muda: PK desta marcação, avanço dela e da marcação seguinte da mesma frente */
+  var m=S.marks.filter(function(x){return x.id===ED.id;})[0],antes=cadeia(S.marks);
+  var novo=S.marks.map(function(x){return x.id===ED.id?Object.assign({},x,{tr:ED.tr,lado:ED.lado,pk:Number(ED.pk)||0,anulada:ED.anul}):x;}),depois=cadeia(novo);
+  var rows=[],ca=antes[m.id],cd=depois[m.id];
+  if(Math.round(m.pk*10)!==Math.round(ED.pk*10)||m.tr!==ED.tr||m.lado!==ED.lado)rows.push(['PK',pk(m.pk)+' → <span class="ch">'+pk(ED.pk)+' ('+sg(ED.pk-m.pk)+' m)</span>']);
+  if(m.tr!==ED.tr){var a=troco(m.tr),b=troco(ED.tr);rows.push(['Troço',esc(a?a.cod:'?')+' → <span class="ch">'+esc(b?b.cod:'?')+'</span>']);}
+  if(m.lado!==ED.lado)rows.push(['Lado',LADO[m.lado]+' → <span class="ch">'+LADO[ED.lado]+'</span>']);
+  if(ED.anul!==!!m.anulada)rows.push(['Estado',(m.anulada?'anulada':'ativa')+' → <span class="ch">'+(ED.anul?'anulada':'ativa')+'</span>']);
+  if(!ED.anul&&ca&&cd&&(ca.delta!==cd.delta))rows.push(['Avanço desta marcação',(ca.delta==null?'—':sg(ca.delta)+' m')+' → <span class="ch">'+(cd.delta==null?'—':sg(cd.delta)+' m')+'</span>']);
+  /* marcações seguintes afetadas */
+  S.marks.forEach(function(x){
+    if(x.id===m.id||x.anulada)return;
+    var a=antes[x.id],b=depois[x.id];
+    if(a&&b&&a.delta!==b.delta&&a.delta!=null&&b.delta!=null)rows.push(['Avanço da marcação das '+tstr(x.ts)+' ('+fdl(x.data).slice(0,5)+')',sg(a.delta)+' m → <span class="ch">'+sg(b.delta)+' m</span>']);
+  });
+  return rows;
+}
+function diff(){
+  var r=diffRows(),el=$('e-diff');
+  el.innerHTML=r.length?r.map(function(x){return '<div><span class="mut">'+x[0]+'</span><span>'+x[1]+'</span></div>';}).join(''):'<span class="mut">Sem alterações.</span>';
+}
+function guardarEd(){
+  var m=S.marks.filter(function(x){return x.id===ED.id;})[0],pkn=Number(ED.pk);
+  if(!isFinite(pkn)){toast('PK inválido');return;}
+  var mud=m.tr!==ED.tr||m.lado!==ED.lado||Math.round(m.pk*10)!==Math.round(pkn*10)||(m.eq||'')!==ED.eq||(m.nota||'')!==ED.nota||!!m.anulada!==ED.anul;
+  if(!mud){$('sheet').hidden=true;return;}
+  var t=troco(ED.tr);
+  m.tr=ED.tr;m.cod=t?t.cod:m.cod;m.via=t?t.via:m.via;m.lado=ED.lado;m.pk=Math.round(pkn*10)/10;m.eq=ED.eq;m.nota=ED.nota;m.anulada=ED.anul;m.ed=(m.ed||0)+1;m.edTs=Date.now();
+  save();ED=null;$('sheet').hidden=true;toast('Alterações guardadas');render();
+}
+
+/* ---------- dados ---------- */
+function rDados(){
+  var pend=S.marks.filter(function(m){return (m.edTs||m.ts)>S.envioTs;}).length;
+  var h='<div class="card"><h2>Troços da obra</h2>'+(S.trocos.length?'<div><b>'+esc(S.obra||'Obra')+'</b> · '+S.trocos.length+' troços<br><span class="mut sm">Carregados em '+esc(S.trocosEm)+'</span></div>':'<div class="mut">Ainda não carregaste os troços.</div>')+'<div class="btns"><label class="btn sec" style="margin:0;color:var(--tx)">Carregar ficheiro de troços<input type="file" id="f-tr" accept=".json,application/json,text/plain,*/*" hidden></label></div></div>';
+  h+='<div class="card"><h2>Enviar para o PC</h2><div class="mut sm">'+ativas().length+' marcações ativas · '+(pend?'<b class="warn">'+pend+' novas ou alteradas desde o último envio</b>':'tudo enviado')+(S.envioTs?'<br>Último envio: '+new Date(S.envioTs).toLocaleString('pt-PT'):'')+'</div><div class="btns"><button class="btn" id="b-env">Enviar marcações</button></div><div class="sm mut" style="margin-top:8px">Escolhe o OneDrive na lista que abrir. Podes enviar as vezes que quiseres: a aplicação do PC atualiza as marcações em vez de as repetir.</div></div>';
+  h+='<div class="card"><h2>Cópia de segurança</h2><div class="btns"><button class="btn sec" id="b-bk">Guardar cópia de tudo</button><label class="btn sec" style="margin:0;color:var(--tx)">Restaurar de uma cópia<input type="file" id="f-bk" accept=".json,application/json,text/plain,*/*" hidden></label></div></div>';
+  h+='<div class="card"><h2>Aplicação</h2><div class="mut sm">Versão '+VER+'<span id="u-st"></span></div><div class="btns"><button class="btn sec" id="b-upd">Verificar atualizações</button></div></div>';
+  $('main').innerHTML=h;
+}
+function lerFicheiro(f,cb){var r=new FileReader();r.onload=function(){try{cb(null,JSON.parse(r.result));}catch(e){cb('O ficheiro não é válido.');}};r.onerror=function(){cb('Não consegui ler o ficheiro.');};r.readAsText(f);}
+function carregarTrocos(d){
+  if(!d||d.tipo!=='cdo-trocos'||!Array.isArray(d.trocos)){toast('Isto não é um ficheiro de troços.');return;}
+  var ok=d.trocos.filter(function(t){return t&&t.id&&Array.isArray(t.g)&&t.g.length>1&&isFinite(t.ini)&&isFinite(t.fim);});
+  if(!ok.length){toast('O ficheiro não tem troços com geometria.');return;}
+  S.trocos=ok;S.frentes=Array.isArray(d.frentes)?d.frentes:[];S.equipas=d.equipas||{};S.obra=d.obra||'';S.trocosEm=new Date().toLocaleString('pt-PT');
+  S.cfg.tr='';S.cfg.man=false;save();prep();toast(ok.length+' troços carregados');render();
+}
+function ficheiroMarcacoes(){
+  return {tipo:'cdo-marcacoes',v:1,dispositivo:S.dev,obra:S.obra,geradoEm:new Date().toISOString(),marcacoes:S.marks.map(function(m){return {id:m.id,tr:m.tr,cod:m.cod,via:m.via,lado:m.lado,pk:m.pk,lat:m.lat,lon:m.lon,prec:m.prec,ts:m.ts,data:m.data,eq:m.eq||'',nota:m.nota||'',anulada:!!m.anulada,editada:m.ed||0,edTs:m.edTs||0,pkOriginal:m.orig?m.orig.pk:m.pk,trOriginal:m.orig?m.orig.tr:m.tr,ladoOriginal:m.orig?m.orig.lado:m.lado};})};
+}
+function entregar(nome,obj,depois){
+  var txt=JSON.stringify(obj),F=plug('Filesystem'),Sh=plug('Share');
+  if(F&&Sh){
+    F.writeFile({path:nome,data:txt,directory:'CACHE',encoding:'utf8'}).then(function(r){return Sh.share({title:nome,text:nome,url:r.uri,dialogTitle:'Enviar para…'});}).then(function(){depois&&depois();}).catch(function(e){if(e&&/cancel/i.test(String(e.message||e)))return;toast('Não consegui partilhar: '+(e&&e.message||e));});
+    return;
+  }
+  var b=new Blob([txt],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nome;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},500);depois&&depois();
+}
+function stamp(){var d=new Date();return dstr(d)+'-'+pad(d.getHours())+pad(d.getMinutes());}
+
+/* ---------- atualizações ---------- */
+function atualizar(manual){
+  var st=$('u-st');if(manual&&st)st.textContent=' · a verificar…';
+  var base='https://raw.githubusercontent.com/'+REPO+'/main/movel/';
+  var ctl=new AbortController(),to=setTimeout(function(){ctl.abort();},20000);
+  return fetch(base+'versao.json?t='+Date.now(),{signal:ctl.signal,cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('GitHub '+r.status);return r.json();}).then(function(j){
+    var v=String(j.versao||'');
+    if(!/^\d+(\.\d+){1,3}$/.test(v))throw new Error('versão inválida');
+    if(cmp(v,VER)<=0){if(manual)toast('Já tens a versão mais recente ('+VER+').');if(st)st.textContent='';return;}
+    if(j.minApk&&cmp(j.minApk,VER)>0&&false){}
+    return fetch(base+'www/index.html?t='+Date.now(),{signal:ctl.signal,cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('GitHub '+r.status);return r.text();}).then(function(html){
+      if(html.length<20000||html.indexOf('cdo-movel-app')<0||html.indexOf("var VER='"+v+"'")<0)throw new Error('ficheiro de atualização incompleto');
+      localStorage.setItem('cdo_upd',JSON.stringify({v:v,html:html}));
+      toast('Versão '+v+' pronta. Fecha e abre a app para usar.');if(st)st.textContent=' · nova versão '+v+' pronta (reinicia a app)';
+    });
+  }).catch(function(e){if(manual){toast('Sem atualização: '+(e&&e.name==='AbortError'?'demorou demasiado':(e&&e.message||e)));if(st)st.textContent='';}}).then(function(){clearTimeout(to);});
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener('click',function(ev){
+  var t=ev.target,b;
+  if((b=t.closest('#nav button'))){show(b.getAttribute('data-t'));return;}
+  if((b=t.closest('[data-go]'))){show(b.getAttribute('data-go'));return;}
+  if(t.closest('#b-marcar')){marcar(false);return;}
+  if(t.closest('#b-forcar')){marcar(true);return;}
+  if(t.closest('#b-canc')){$('aviso').innerHTML='';return;}
+  if((b=t.closest('#s-lado button'))){S.cfg.lado=b.getAttribute('data-l');save();rMarcar();return;}
+  if((b=t.closest('.item[data-id]'))){abrir(b.getAttribute('data-id'));return;}
+  if(t.closest('#e-x')){ED=null;$('sheet').hidden=true;return;}
+  if(t.closest('#e-ok')){guardarEd();return;}
+  if(t.closest('#e-del')){if(ED.anul){ED.anul=false;ED.conf=false;}else if(ED.conf){ED.anul=true;ED.conf=false;}else ED.conf=true;drawSheet();return;}
+  if((b=t.closest('#e-lado button'))){ED.lado=b.getAttribute('data-l');drawSheet();return;}
+  if((b=t.closest('.step button'))){ED.pk=Math.round((Number(ED.pk)+Number(b.getAttribute('data-d')))*10)/10;$('e-pk').value=ED.pk;$('e-pkt').textContent='= PK '+pk(ED.pk);diff();return;}
+  if(t.closest('#b-env')){
+    if(!S.marks.length){toast('Ainda não há marcações para enviar.');return;}
+    entregar('marcacoes-'+stamp()+'.json',ficheiroMarcacoes(),function(){S.envioTs=Date.now();save();toast('Ficheiro pronto. Marcações enviadas.');rDados();});return;
+  }
+  if(t.closest('#b-bk')){entregar('copia-controlo-obra-'+stamp()+'.json',{tipo:'cdo-copia',v:1,estado:S},function(){toast('Cópia criada.');});return;}
+  if(t.closest('#b-upd')){atualizar(true);return;}
+});
+document.addEventListener('change',function(ev){
+  var t=ev.target;
+  if(t.id==='s-tr'){S.cfg.tr=t.value;S.cfg.man=!!t.value;save();liveUpd();return;}
+  if(t.id==='s-eq'){S.cfg.eq=t.value;save();return;}
+  if(t.id==='e-tr'){ED.tr=t.value;diff();return;}
+  if(t.id==='e-eq'){ED.eq=t.value;return;}
+  if(t.id==='f-tr'&&t.files[0]){lerFicheiro(t.files[0],function(er,d){if(er)toast(er);else carregarTrocos(d);t.value='';});return;}
+  if(t.id==='f-bk'&&t.files[0]){lerFicheiro(t.files[0],function(er,d){if(er){toast(er);return;}if(!d||d.tipo!=='cdo-copia'||!d.estado||!Array.isArray(d.estado.marks)){toast('Isto não é uma cópia desta aplicação.');return;}S=d.estado;save();prep();toast('Cópia restaurada ('+S.marks.length+' marcações).');render();t.value='';});return;}
+});
+document.addEventListener('input',function(ev){
+  var t=ev.target;
+  if(t.id==='e-pk'){ED.pk=Number(String(t.value).replace(',','.'));$('e-pkt').textContent=isFinite(ED.pk)?'= PK '+pk(ED.pk):'';diff();}
+  else if(t.id==='e-nota')ED.nota=t.value;
+});
+
+/* ---------- arranque ---------- */
+load();prep();$('hv').textContent='v'+VER;
+render();gpsOn();setInterval(function(){if(tab==='marcar'&&$('sheet').hidden)liveUpd();},1000);
+try{localStorage.removeItem('cdo_try');}catch(e){}
+setTimeout(function(){if(navigator.onLine!==false)atualizar(false);},4000);
+window.__cdoDebug={S:function(){return S;},POS:function(){return POS;}};
+})();
+</script>
+</body>
+</html>

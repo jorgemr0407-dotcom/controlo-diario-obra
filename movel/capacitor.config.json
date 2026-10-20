@@ -1,0 +1,7 @@
+{
+  "appId": "pt.prioridade.controloobra",
+  "appName": "Controlo Obra",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false }
+}
