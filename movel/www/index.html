@@ -9,7 +9,7 @@
 <script>
 /* ---- arranque: usa a versão descarregada mais recente, se existir e se a anterior arrancou bem ---- */
 (function(){
-  var VER='1.1.0';
+  var VER='1.1.1';
   function cmp(a,b){a=String(a).split('.').map(Number);b=String(b).split('.').map(Number);for(var i=0;i<4;i++){var d=(a[i]||0)-(b[i]||0);if(d)return d<0?-1:1;}return 0;}
   window.CDO_VER=VER;window.cdoCmp=cmp;
   try{
@@ -95,6 +95,7 @@ select,input,textarea{width:100%;background:var(--card2);color:var(--tx);border:
 <nav id="nav" role="tablist">
   <button role="tab" data-t="inicio" aria-selected="true"><b>⌂</b>Início</button>
   <button role="tab" data-t="marcar" aria-selected="false"><b>◎</b>Desgaste</button>
+  <button role="tab" data-t="ren" aria-selected="false"><b>▥</b>Rendimentos</button>
   <button role="tab" data-t="dados" aria-selected="false"><b>⇅</b>Dados</button>
 </nav>
 <div id="toast" class="toast" hidden></div>
@@ -187,7 +188,7 @@ function gpsOn(){
 
 /* ---------- ecrãs ---------- */
 var tab='inicio';
-var NOMES={inicio:'Página inicial',marcar:'Controlo da Camada de Desgaste',lista:'Controlo da Camada de Desgaste',dados:'Dados e cópias'};
+var NOMES={ren:'Controlo de Rendimentos',inicio:'Página inicial',marcar:'Controlo da Camada de Desgaste',lista:'Controlo da Camada de Desgaste',dados:'Dados e cópias'};
 var HOME=[{"k": "pav", "svg": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M8 21 10 3M16 21 14 3\"/><path d=\"M12 5v2M12 11v2M12 17v2\"/></svg>", "n": "Controlo da Camada de Desgaste", "s": "Registo e controlo de áreas e quantidades"}, {"k": "reg", "svg": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 3 3 8l9 5 9-5-9-5Z\"/><path d=\"m3 13 9 5 9-5\"/></svg>", "n": "Controlo da Camada de Regularização", "s": "Registo e controlo de áreas e quantidades"}, {"k": "sin", "svg": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 3 2.5 20h19L12 3Z\"/><path d=\"M12 10v4M12 17v.5\"/></svg>", "n": "Sinalização Rodoviária", "s": "Sinalização temporária e definitiva"}, {"k": "loc", "svg": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z\"/><circle cx=\"12\" cy=\"9.5\" r=\"2.5\"/></svg>", "n": "Intervenções Localizadas", "s": "Trabalhos pontuais"}, {"k": "mg", "svg": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6Z\"/><path d=\"M9 4v14M15 6v14\"/></svg>", "n": "Visão Geral da Obra", "s": "Estado e localização dos trabalhos"}, {"k": "map", "svg": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"m3 16 5-5 4 4 3-3 6 6\"/><circle cx=\"8.5\" cy=\"8.5\" r=\"1.5\"/></svg>", "n": "Cartografia e Mapas", "s": "Mapas de fundo"}, {"k": "rel", "svg": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 3h9l4 4v14H6V3Z\"/><path d=\"M14 3v5h5M9 13h7M9 17h7\"/></svg>", "n": "Relatórios de Obra", "s": "Relatórios em PDF"}, {"k": "ren", "svg": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 20V10M10 20V4M16 20v-8M22 20H2\"/></svg>", "n": "Controlo de Rendimentos", "s": "Previsto vs. realizado"}, {"k": "bk", "svg": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><ellipse cx=\"12\" cy=\"6\" rx=\"8\" ry=\"3\"/><path d=\"M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6\"/></svg>", "n": "Cópias de Segurança", "s": "Backup e restauro"}];
 function secao(t){return t==='lista'?'marcar':t;}
 function show(t){
@@ -204,10 +205,10 @@ function tabsDes(){
 }
 function render(){
   barra();
-  if(tab==='inicio')rInicio();else if(tab==='marcar')rMarcar();else if(tab==='lista')rLista();else rDados();
+  if(tab==='inicio')rInicio();else if(tab==='ren')rRend();else if(tab==='marcar')rMarcar();else if(tab==='lista')rLista();else rDados();
 }
 function rInicio(){
-  var ok={pav:'marcar',bk:'dados'},pc={rel:1},h='<div class="card"><p class="mut" style="margin:0">Escolhe o módulo com que queres trabalhar.</p>';
+  var ok={pav:'marcar',ren:'ren',bk:'dados'},pc={rel:1},h='<div class="card"><p class="mut" style="margin:0">Escolhe o módulo com que queres trabalhar.</p>';
   h+='<div class="sm mut" style="margin-top:8px">'+(S.trocos.length?'<b style="color:var(--tx)">'+esc(S.obra||'Obra')+'</b> · '+S.trocos.length+' troços · '+ativas().length+' marcações':'Ainda não carregaste os troços (separador Dados).')+'</div></div>';
   h+='<div class="hgrid">'+HOME.map(function(c){
     var on=ok[c.k],tag=on?'Aceder ›':(pc[c.k]?'Só no PC':'Em breve');
@@ -348,6 +349,7 @@ function guardarEd(){
 function rDados(){
   var pend=S.marks.filter(function(m){return (m.edTs||m.ts)>S.envioTs;}).length;
   var h='<div class="card"><h2>Troços da obra</h2>'+(S.trocos.length?'<div><b>'+esc(S.obra||'Obra')+'</b> · '+S.trocos.length+' troços<br><span class="mut sm">Carregados em '+esc(S.trocosEm)+'</span></div>':'<div class="mut">Ainda não carregaste os troços.</div>')+'<div class="btns"><label class="btn sec" style="margin:0;color:var(--tx)">Carregar ficheiro de troços<input type="file" id="f-tr" accept=".json,application/json,text/plain,*/*" hidden></label></div></div>';
+  h+='<div class="card"><h2>Dados do PC (consulta)</h2>'+(PC?'<div class="sm mut">Cópia de <b style="color:var(--tx)">'+esc(PC.criado?new Date(PC.criado).toLocaleString('pt-PT'):new Date(PC.em).toLocaleString('pt-PT'))+'</b> · '+PC.trocos.length+' troços · '+PC.registos.length+' registos de desgaste</div>':'<div class="mut">Ainda não carregaste a cópia de segurança do PC.</div>')+'<div class="btns"><label class="btn sec" style="margin:0;color:var(--tx)">Carregar cópia de segurança do PC (.zip)<input type="file" id="f-pc" accept=".zip,.json,application/zip,application/json,*/*" hidden></label></div><div class="sm mut" style="margin-top:8px">No PC: Início › Cópias de Segurança › Descarregar backup. Passa o ficheiro .zip para o telemóvel (OneDrive, WhatsApp, cabo). Só são lidos os dados; fotografias e mapas não ocupam espaço.</div></div>';
   h+='<div class="card"><h2>Enviar para o PC</h2><div class="mut sm">'+ativas().length+' marcações ativas · '+(pend?'<b class="warn">'+pend+' novas ou alteradas desde o último envio</b>':'tudo enviado')+(S.envioTs?'<br>Último envio: '+new Date(S.envioTs).toLocaleString('pt-PT'):'')+'</div><div class="btns"><button class="btn" id="b-env">Enviar marcações</button></div><div class="sm mut" style="margin-top:8px">Escolhe o OneDrive na lista que abrir. Podes enviar as vezes que quiseres: a aplicação do PC atualiza as marcações em vez de as repetir.</div></div>';
   h+='<div class="card"><h2>Cópia de segurança</h2><div class="btns"><button class="btn sec" id="b-bk">Guardar cópia de tudo</button><label class="btn sec" style="margin:0;color:var(--tx)">Restaurar de uma cópia<input type="file" id="f-bk" accept=".json,application/json,text/plain,*/*" hidden></label></div></div>';
   h+='<div class="card"><h2>Aplicação</h2><div class="mut sm">Versão '+VER+'<span id="u-st"></span></div><div class="btns"><button class="btn sec" id="b-upd">Verificar atualizações</button></div></div>';
@@ -373,6 +375,226 @@ function entregar(nome,obj,depois){
   var b=new Blob([txt],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nome;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},500);depois&&depois();
 }
 function stamp(){var d=new Date();return dstr(d)+'-'+pad(d.getHours())+pad(d.getMinutes());}
+
+/* ---------- dados do PC (cópia de segurança) e rendimentos: só consulta ---------- */
+var PCK='cdo_pc',PC=null,BAR=2.37;
+function loadPC(){try{PC=JSON.parse(localStorage.getItem(PCK)||'null');}catch(e){PC=null;}if(PC&&!PC.registos)PC=null;}
+function rdBlob(b){return new Promise(function(ok,ko){if(b.arrayBuffer){b.arrayBuffer().then(ok,ko);return;}var r=new FileReader();r.onload=function(){ok(r.result);};r.onerror=ko;r.readAsArrayBuffer(b);});}
+/* lê só o «dados.json» de um ZIP do PC, sem carregar o ficheiro todo (as fotografias não interessam) */
+function lerDadosZip(file){
+  var sz=file.size,ini=Math.max(0,sz-70000);
+  return rdBlob(file.slice(ini,sz)).then(function(buf){
+    var v=new DataView(buf),p=-1;
+    for(var i=buf.byteLength-22;i>=0;i--){if(v.getUint32(i,true)===0x06054b50){p=i;break;}}
+    if(p<0)throw new Error('zip');
+    var n=v.getUint16(p+10,true),cdSize=v.getUint32(p+12,true),cdOff=v.getUint32(p+16,true);
+    if(cdOff===0xFFFFFFFF)throw new Error('zip64');
+    return rdBlob(file.slice(cdOff,cdOff+cdSize)).then(function(cb){
+      var d=new DataView(cb),o=0,u8=new Uint8Array(cb);
+      for(var k=0;k<n;k++){
+        if(d.getUint32(o,true)!==0x02014b50)break;
+        var m=d.getUint16(o+10,true),cs=d.getUint32(o+20,true),nl=d.getUint16(o+28,true),el=d.getUint16(o+30,true),cl=d.getUint16(o+32,true),lh=d.getUint32(o+42,true),nome=new TextDecoder().decode(u8.subarray(o+46,o+46+nl));
+        if(nome==='dados.json'){
+          return rdBlob(file.slice(lh,lh+30)).then(function(hb){
+            var h=new DataView(hb),dOff=lh+30+h.getUint16(26,true)+h.getUint16(28,true);
+            return rdBlob(file.slice(dOff,dOff+cs));
+          }).then(function(raw){
+            if(m===0)return new Uint8Array(raw);
+            if(m===8&&typeof DecompressionStream!=='undefined'){return new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer().then(function(a){return new Uint8Array(a);});}
+            throw new Error('metodo');
+          });
+        }
+        o+=46+nl+el+cl;
+      }
+      throw new Error('sem dados.json');
+    });
+  });
+}
+function leve(o){var r={};Object.keys(o||{}).forEach(function(k){var v=o[k];if(v==null||typeof v==='number'||typeof v==='boolean'||(typeof v==='string'&&v.length<=200))r[k]=v;});return r;}
+function lista(m){return Object.keys(m||{}).map(function(id){var d=leve(m[id]);d.id=id;return d;});}
+function importarPC(js){
+  if(!js||js.formato!=='controlo-espessuras-backup'||!js.colecoes)throw new Error('formato');
+  var c=js.colecoes,cfg=c.config||{},orc=cfg.orc||{},cal=cfg.cal||{},ob=cfg.obra||{};
+  PC={em:Date.now(),criado:js.criado||'',obra:ob.nome||'',
+    trocos:lista(c.trocos),registos:lista(c.registos),retro:lista(c.retro),regul:lista(c.regul),sinal:lista(c.sinal),
+    orc:{reg:orc.reg||{},des:orc.des||{},sin:orc.sin||{}},
+    cal:{sab:cal.sab===true,mun:Array.isArray(cal.mun)?cal.mun.map(function(m){return leve(m);}):[],exc:Array.isArray(cal.exc)?cal.exc.slice():[]}};
+  try{localStorage.setItem(PCK,JSON.stringify(PC));}catch(e){PC=null;throw new Error('espaco');}
+}
+function carregarPC(file){
+  var ini=rdBlob(file.slice(0,2));
+  toast('A ler a cópia do PC…');
+  ini.then(function(b){
+    var u=new Uint8Array(b);
+    if(u[0]===0x50&&u[1]===0x4b)return lerDadosZip(file).then(function(x){return JSON.parse(new TextDecoder().decode(x));});
+    return rdBlob(file).then(function(x){return JSON.parse(new TextDecoder().decode(new Uint8Array(x)));});
+  }).then(function(js){importarPC(js);toast('Dados do PC carregados.');render();}).catch(function(e){
+    var m=String(e&&e.message||e);
+    toast(m==='espaco'?'Sem espaço no telemóvel para guardar estes dados.':m==='formato'?'Isto não é uma cópia de segurança desta aplicação.':'Não consegui ler este ficheiro. Usa o ficheiro .zip da cópia de segurança do PC.');
+  });
+}
+/* --- cálculos: os mesmos da aplicação de PC --- */
+function pHav(a,b){var R=6371008.8,r=Math.PI/180,dl=(b[1]-a[1])*r,dn=(b[0]-a[0])*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[1]*r)*Math.cos(b[1]*r)*Math.sin(dn/2)*Math.sin(dn/2);return 2*R*Math.asin(Math.sqrt(x));}
+function pSum(a,f){return a.reduce(function(s,x){return s+f(x);},0);}
+function pTroco(id){for(var i=0;i<PC.trocos.length;i++)if(PC.trocos[i].id===id)return PC.trocos[i];return null;}
+function pRowsDes(){
+  var rows=[],run={};
+  PC.registos.slice().sort(function(a,b){return (a.data||'').localeCompare(b.data||'')||(a.ts||0)-(b.ts||0);}).forEach(function(r){
+    var t=pTroco(r.tr);if(!t)return;
+    var lado=r.lado==='D'?'D':r.lado==='T'?'T':'E',m=r.m!=null?r.m:(r.fim-r.ini);
+    (lado==='T'?['E','D']:[lado]).forEach(function(sd){
+      var k=t.id+sd,a=run[k]||0,tot=lado==='T';run[k]=a+m;
+      var larg=tot?r.larg/2:r.larg;rows.push({id:r.id,tr:t,lado:sd,L:m,larg:larg,area:m*larg,t:tot?r.t/2:r.t,data:r.data||'',eq:r.eq||''});
+    });
+  });
+  PC.retro.forEach(function(x){
+    var t=pTroco(x.tr);
+    if(!t||!x||typeof x.pki!=='number'||typeof x.pkf!=='number'||!(x.pkf>x.pki)||!(x.larg>0)||!(x.t>0)||!(x.dias>=1))return;
+    var m=x.pkf-x.pki,tot=x.lado==='T';
+    (tot?['E','D']:[x.lado==='D'?'D':'E']).forEach(function(sd){
+      var larg=tot?x.larg/2:x.larg;rows.push({id:x.id,tr:t,lado:sd,L:m,larg:larg,area:m*larg,t:tot?x.t/2:x.t,data:'',eq:x.eq||'',retro:true,rd:x.data||'',dias:x.dias});
+    });
+  });
+  return rows;
+}
+function pRowsReg(){
+  return PC.regul.slice().sort(function(a,b){return (a.data||'').localeCompare(b.data||'')||(a.ts||0)-(b.ts||0);}).map(function(r){
+    var L=r.len>0?r.len:pHav([r.lon1,r.lat1],[r.lon2,r.lat2]),sem=!!r.semt||r.t==null;
+    return {id:r.id,data:r.data||'',L:L,area:L*r.larg,t:sem?0:r.t,sem:sem};
+  });
+}
+function pMergeInt(a){a=a.slice().sort(function(x,y){return x[0]-y[0];});var o=[];a.forEach(function(i){var l=o[o.length-1];if(l&&i[0]<=l[1]+0.01)l[1]=Math.max(l[1],i[1]);else o.push([i[0],i[1]]);});return o;}
+var ORCI=[{k:'rt',g:'reg',f:'t',l:'Regularização',u:'t/dia',d:1},{k:'ra',g:'reg',f:'a',l:'Regularização',u:'m²/dia',d:0},{k:'dt',g:'des',f:'t',l:'Desgaste',u:'t/dia',d:1},{k:'da',g:'des',f:'a',l:'Desgaste',u:'m²/dia',d:0},{k:'sm',g:'sin',f:'m',l:'Sinalização',u:'m/dia',d:0}];
+function orcVal(i){var c=PC.orc[i.g],v=c&&c[i.f];return typeof v==='number'&&v>=0?v:null;}
+function orcInR(d,f,t){return !!d&&(!f||d>=f)&&(!t||d<=t);}
+function orcFromRows(i,rows){
+  var m={},ro={},rt=0;
+  if(i.g==='sin'){
+    var per={};
+    rows.forEach(function(e){if(!e.data)return;var k=e.data+'|'+e.tr+'|'+e.lado+'|'+e.tipo;(per[k]=per[k]||[]).push([e.a,e.b]);});
+    Object.keys(per).forEach(function(k){var d=k.split('|')[0];m[d]=(m[d]||0)+pSum(pMergeInt(per[k]),function(x){return x[1]-x[0];});});
+  }else{
+    rows.forEach(function(r){
+      if(r.retro){if(!(r.id in ro))ro[r.id]=r.dias||0;rt+=(i.f==='t'?(r.t||0):(r.area||0));return;}
+      if(!r.data)return;
+      if(i.f==='t'){if(r.sem)return;m[r.data]=(m[r.data]||0)+(r.t||0);}
+      else m[r.data]=(m[r.data]||0)+(r.area||0);
+    });
+  }
+  var days=Object.keys(m).sort().map(function(d){return {d:d,v:m[d]};}),tot=pSum(days,function(x){return x.v;})+rt,nn=days.length+pSum(Object.keys(ro),function(k){return ro[k];});
+  return {days:days,total:tot,n:nn,real:(nn&&tot>0)?tot/nn:null};
+}
+function orcRowsFor(i,f,t,filt){
+  var rows=i.g==='sin'?PC.sinal:i.g==='reg'?pRowsReg():pRowsDes();
+  return rows.filter(function(r){return orcInR(r.retro?r.rd:r.data,f,t)&&(!filt||filt(r));});
+}
+function orcStat(i,rows){
+  var o=orcVal(i),x=orcFromRows(i,rows),s={i:i,orc:o,real:x.real,n:x.n,days:x.days,total:x.total};
+  if(x.real!=null&&o!=null){s.dif=x.real-o;if(o>0){s.dev=s.dif/o*100;s.st=Math.abs(s.dev)<0.5?'igual':s.dev>0?'acima':'abaixo';}}
+  return s;
+}
+function pdt(s){var m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Date(+m[1],+m[2]-1,+m[3],12):null;}
+function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function addDays(s,n){var d=pdt(s);if(!d)return '';d.setDate(d.getDate()+n);return ymd(d);}
+function orcLast(){var ds=[];ORCI.forEach(function(i){orcFromRows(i,orcRowsFor(i,'','')).days.forEach(function(x){ds.push(x.d);});});ds.sort();return ds[ds.length-1]||dstr(Date.now());}
+var RP={m:'acum',d:'',from:'',to:'',det:'',ini:''};
+function orcRange(){
+  var d;
+  if(RP.m==='dia'){d=RP.d||orcLast();return {f:d,t:d,l:'Dia '+fdl(d)};}
+  if(RP.m==='sem'){d=RP.d||orcLast();var wd=(pdt(d).getDay()+6)%7,f=addDays(d,-wd),t=addDays(f,6);return {f:f,t:t,l:'Semana de '+fdl(f)+' a '+fdl(t)};}
+  if(RP.m==='int')return {f:RP.from,t:RP.to,l:(RP.from?fdl(RP.from):'início')+' a '+(RP.to?fdl(RP.to):'hoje')};
+  return {f:'',t:'',l:'Acumulado da obra'};
+}
+/* calendário de trabalho e previsão de conclusão */
+function pEaster(y){var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),dd=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,dd,12);}
+var PHC={};
+function feriadosPT(y){
+  if(PHC[y])return PHC[y];
+  var e=pEaster(y),sx=new Date(e.getTime());sx.setDate(sx.getDate()-2);var cc=new Date(e.getTime());cc.setDate(cc.getDate()+60);
+  var susp=y>=2013&&y<=2015,L=[[y+'-01-01','Ano Novo'],[ymd(sx),'Sexta-feira Santa'],[ymd(e),'Domingo de Páscoa'],[y+'-04-25','Dia da Liberdade'],[y+'-05-01','Dia do Trabalhador'],[y+'-06-10','Dia de Portugal'],[y+'-08-15','Assunção de Nossa Senhora'],[y+'-12-08','Imaculada Conceição'],[y+'-12-25','Natal']];
+  if(!susp)L.push([ymd(cc),'Corpo de Deus'],[y+'-10-05','Implantação da República'],[y+'-11-01','Todos os Santos'],[y+'-12-01','Restauração da Independência']);
+  var m={};L.forEach(function(x){m[x[0]]=x[1];});return (PHC[y]=m);
+}
+function diaNaoUtil(s,cfg){
+  var d=pdt(s),w=d.getDay();if(w===0)return 'domingo';
+  var n=feriadosPT(+s.slice(0,4))[s];if(n)return n;
+  for(var i=0;i<cfg.mun.length;i++){var m=cfg.mun[i];if(m.d===s||(m.anual&&m.d&&m.d.slice(5)===s.slice(5)))return m.n||'Feriado municipal';}
+  if(w===6&&!cfg.sab)return 'sábado';return null;
+}
+function prevData(ini,n,cfg){
+  if(!(n>0))return null;var s=ini,c=0,g=0;
+  while(g<4000){if(!diaNaoUtil(s,cfg)){c++;if(c>=n)return {data:s,cal:g+1};}s=addDays(s,1);g++;}
+  return null;
+}
+function prPend(rows,ids){
+  var tot={L:0,area:0,t:0};
+  PC.trocos.forEach(function(t){
+    if(ids.indexOf(t.id)<0)return;
+    var rs=rows.filter(function(r){return r.tr===t;}),L=pSum(rs,function(r){return r.L;});
+    var pl=Math.max(0,2*(t.fim-t.ini)-L),aw=L?pSum(rs,function(r){return r.larg*r.L;})/L:3.5;
+    var pa=pl*aw;tot.L+=pl;tot.area+=pa;tot.t+=pa*t.prev*BAR/100;
+  });
+  return tot;
+}
+function sgd(n,d){var p=Math.pow(10,d),r=Math.round(n*p)/p;return (r>0?'+':r<0?'−':'')+fmt(Math.abs(r),d);}
+function dvHTML(s){if(s.dev==null)return '<span class="mut">—</span>';return '<b class="'+(s.st==='acima'?'ok':s.st==='abaixo'?'bad':'mut')+'">'+(s.st==='acima'?'▲ ':s.st==='abaixo'?'▼ ':'= ')+sgd(s.dev,1)+' %</b>';}
+var ORCST={acima:'Acima do orçamentado',abaixo:'Abaixo do orçamentado',igual:'Igual ao orçamentado'};
+function rRend(){
+  var h='';
+  if(!PC){
+    $('main').innerHTML='<div class="card"><h2>Faltam os dados do PC</h2><p class="mut">Os rendimentos calculam-se a partir da cópia de segurança do PC. Abre o separador <b>Dados</b> e carrega o ficheiro .zip («Cópias de Segurança» no PC).</p><div class="btns"><button class="btn" data-go="dados">Ir para Dados</button></div></div>';return;
+  }
+  var R=orcRange(),st=ORCI.map(function(i){return orcStat(i,orcRowsFor(i,R.f,R.t));}).filter(function(s){return s.orc!=null||s.real!=null;});
+  h+='<div class="card"><div class="sm mut">Dados do PC de <b style="color:var(--tx)">'+esc(PC.criado?new Date(PC.criado).toLocaleString('pt-PT'):new Date(PC.em).toLocaleString('pt-PT'))+'</b>. Para atualizar, carrega uma cópia nova em Dados.</div></div>';
+  h+='<div class="card"><h2>Período</h2><select id="r-pm"><option value="acum"'+(RP.m==='acum'?' selected':'')+'>Acumulado da obra</option><option value="dia"'+(RP.m==='dia'?' selected':'')+'>Um dia</option><option value="sem"'+(RP.m==='sem'?' selected':'')+'>Uma semana</option><option value="int"'+(RP.m==='int'?' selected':'')+'>Intervalo de datas</option></select>';
+  if(RP.m==='dia'||RP.m==='sem')h+='<label>Data'+(RP.m==='sem'?' (escolhe qualquer dia da semana)':'')+'</label><input type="date" id="r-d" value="'+esc(RP.d||orcLast())+'">';
+  if(RP.m==='int')h+='<label>De</label><input type="date" id="r-from" value="'+esc(RP.from)+'"><label>Até</label><input type="date" id="r-to" value="'+esc(RP.to)+'">';
+  h+='</div>';
+  if(!st.length)h+='<div class="card mut">Ainda não há rendimentos orçamentados nem produção registada neste período.</div>';
+  else{
+    if(!RP.det||!st.some(function(s){return s.i.k===RP.det;}))RP.det=st[0].i.k;
+    st.forEach(function(s){
+      h+='<div class="card"><h2>'+esc(s.i.l)+' <span class="mut" style="text-transform:none;letter-spacing:0">('+s.i.u+')</span></h2>'
+        +'<div class="diff" style="margin-top:0"><div><span class="mut">Orçamentado</span><span>'+(s.orc==null?'<span class="mut">não definido</span>':fmt(s.orc,s.i.d))+'</span></div>'
+        +'<div><span class="mut">Real médio</span><span><b>'+(s.real==null?'—':fmt(s.real,s.i.d))+'</b></span></div>'
+        +'<div><span class="mut">Diferença</span><span>'+(s.dif==null?'—':sgd(s.dif,s.i.d))+'</span></div>'
+        +'<div><span class="mut">Desvio</span><span>'+dvHTML(s)+'</span></div>'
+        +'<div><span class="mut">Dias com registos</span><span>'+s.n+'</span></div></div>'
+        +(s.st?'<div class="sm '+(s.st==='acima'?'ok':s.st==='abaixo'?'bad':'mut')+'" style="margin-top:6px">'+ORCST[s.st]+'</div>':'<div class="sm mut" style="margin-top:6px">'+(s.real==null?'Sem produção registada':s.orc==null?'Orçamento não definido':'Indisponível (orçamento a zero)')+'</div>')
+        +'<div class="btns"><button class="btn sec" data-rdet="'+s.i.k+'">'+(RP.det===s.i.k&&RP.open?'Esconder detalhe':'Ver detalhe por dia')+'</button></div>';
+      if(RP.det===s.i.k&&RP.open){
+        if(!s.days.length)h+='<div class="sm mut" style="margin-top:8px">Sem produção registada neste período.</div>';
+        else h+='<div style="margin-top:8px">'+s.days.slice().reverse().slice(0,60).map(function(x){
+          var dv=(s.orc>0)?(x.v-s.orc)/s.orc*100:null,stt=dv==null?'':Math.abs(dv)<0.5?'igual':dv>0?'acima':'abaixo';
+          return '<div class="item"><div class="mid"><div>'+fdl(x.d)+'</div><div class="sm mut">orçamentado '+(s.orc==null?'—':fmt(s.orc,s.i.d))+'</div></div><div style="text-align:right"><b>'+fmt(x.v,s.i.d)+'</b><div class="sm '+(stt==='acima'?'ok':stt==='abaixo'?'bad':'mut')+'">'+(dv==null?'—':sgd(dv,1)+' %')+'</div></div></div>';
+        }).join('')+'</div>';
+      }
+      h+='</div>';
+    });
+    h+='<div class="sm mut" style="margin:0 2px 12px">Período: '+esc(R.l)+'. «Real médio» = produção total ÷ dias em que houve registos. Desvio = (real − orçamentado) ÷ orçamentado. Compara produtividade física; não mede margem nem custo.</div>';
+  }
+  h+=rPrev();
+  $('main').innerHTML=h;
+}
+function rPrev(){
+  var cfg=PC.cal,ini=RP.ini||dstr(Date.now()),rows=pRowsDes(),all=PC.trocos.map(function(t){return t.id;}),ids=all.filter(function(id){return cfg.exc.indexOf(id)<0;}),p=prPend(rows,ids);
+  var iT=ORCI[2],iA=ORCI[3],real=function(i){return orcFromRows(i,orcRowsFor(i,'','',function(r){return r.tr&&ids.indexOf(r.tr.id)>=0;})).real;};
+  function src(nome,vT,vA){if(vT!=null&&vT>0)return {nome:nome,rate:vT,un:'t/dia',falta:p.t,uq:'t'};if(vA!=null&&vA>0)return {nome:nome,rate:vA,un:'m²/dia',falta:p.area,uq:'m²'};return {nome:nome,rate:null};}
+  var S1=src('Rendimento real',real(iT),real(iA)),S2=src('Rendimento orçamentado',orcVal(iT),orcVal(iA));
+  var h='<div class="card"><h2>Previsão de conclusão</h2>';
+  if(!PC.trocos.length)return h+'<div class="mut">Sem troços nos dados do PC.</div></div>';
+  if(!ids.length)return h+'<div class="mut">No PC não há troços incluídos na previsão.</div></div>';
+  h+='<label style="margin-top:0">Contar a partir de</label><input type="date" id="r-ini" value="'+esc(ini)+'">';
+  [S1,S2].forEach(function(s){
+    h+='<div class="diff"><div><b>'+s.nome+'</b><span></span></div>';
+    if(s.rate==null){h+='<div><span class="mut">'+(s===S1?'Sem produção registada nos troços incluídos.':'Rendimento de desgaste orçamentado não definido.')+'</span></div></div>';return;}
+    if(!(s.falta>0)){h+='<div><span class="mut">Por executar</span><span>0 '+s.uq+'</span></div><div><span class="mut">Conclusão</span><span><b>Concluído</b></span></div></div>';return;}
+    var n=Math.ceil(s.falta/s.rate-1e-9),r=prevData(ini,n,cfg);
+    h+='<div><span class="mut">Por executar</span><span>'+fmt(s.falta,0)+' '+s.uq+'</span></div><div><span class="mut">Rendimento diário</span><span>'+fmt(s.rate,s.un==='t/dia'?1:0)+' '+s.un+'</span></div><div><span class="mut">Dias de trabalho</span><span>'+n+'</span></div><div><span class="mut">Conclusão prevista</span><span><b class="ch">'+(r?['dom','seg','ter','qua','qui','sex','sáb'][pdt(r.data).getDay()]+' '+fdl(r.data):'—')+'</b></span></div><div><span class="mut">Dias de calendário</span><span>'+(r?r.cal:'—')+'</span></div></div>';
+  });
+  h+='<div class="sm mut" style="margin-top:8px">Calendário definido no PC: sábados '+(cfg.sab?'contam':'não contam')+', domingos e feriados nacionais nunca contam'+(cfg.mun.length?', mais '+cfg.mun.length+' feriado(s) municipal(is)':'')+'. Âmbito: '+(ids.length===all.length?'todas as estradas e troços':ids.length+' de '+all.length+' troços')+'. Para mudar estas opções, usa o PC e carrega uma cópia nova.</div></div>';
+  return h;
+}
 
 /* ---------- atualizações ---------- */
 function atualizar(manual){
@@ -417,6 +639,7 @@ document.addEventListener('click',function(ev){
   }
   if(t.closest('#b-bk')){entregar('copia-controlo-obra-'+stamp()+'.json',{tipo:'cdo-copia',v:1,estado:S},function(){toast('Cópia criada.');});return;}
   if(t.closest('#b-upd')){atualizar(true);return;}
+  if((b=t.closest('[data-rdet]'))){var k=b.getAttribute('data-rdet');RP.open=!(RP.det===k&&RP.open);RP.det=k;rRend();return;}
 });
 document.addEventListener('change',function(ev){
   var t=ev.target;
@@ -424,6 +647,12 @@ document.addEventListener('change',function(ev){
   if(t.id==='s-eq'){S.cfg.eq=t.value;save();return;}
   if(t.id==='e-tr'){ED.tr=t.value;diff();return;}
   if(t.id==='e-eq'){ED.eq=t.value;return;}
+  if(t.id==='f-pc'&&t.files[0]){var f0=t.files[0];t.value='';carregarPC(f0);return;}
+  if(t.id==='r-pm'){RP.m=t.value;RP.open=false;rRend();return;}
+  if(t.id==='r-d'){RP.d=t.value;rRend();return;}
+  if(t.id==='r-from'){RP.from=t.value;rRend();return;}
+  if(t.id==='r-to'){RP.to=t.value;rRend();return;}
+  if(t.id==='r-ini'){RP.ini=t.value;rRend();return;}
   if(t.id==='f-tr'&&t.files[0]){lerFicheiro(t.files[0],function(er,d){if(er)toast(er);else carregarTrocos(d);t.value='';});return;}
   if(t.id==='f-bk'&&t.files[0]){lerFicheiro(t.files[0],function(er,d){if(er){toast(er);return;}if(!d||d.tipo!=='cdo-copia'||!d.estado||!Array.isArray(d.estado.marks)){toast('Isto não é uma cópia desta aplicação.');return;}S=d.estado;save();prep();toast('Cópia restaurada ('+S.marks.length+' marcações).');render();t.value='';});return;}
 });
@@ -434,7 +663,7 @@ document.addEventListener('input',function(ev){
 });
 
 /* ---------- arranque ---------- */
-load();prep();$('hv').textContent='v'+VER;
+load();loadPC();prep();$('hv').textContent='v'+VER;
 try{var lt=localStorage.getItem('cdo_tab');if(lt&&NOMES[lt])tab=lt;}catch(e){}
 show(tab);gpsOn();setInterval(function(){if(tab==='marcar'&&$('sheet').hidden)liveUpd();},1000);
 try{localStorage.removeItem('cdo_try');}catch(e){}
