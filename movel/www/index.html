@@ -9,7 +9,7 @@
 <script>
 /* ---- arranque: usa a versão descarregada mais recente, se existir e se a anterior arrancou bem ---- */
 (function(){
-  var VER='1.0.2';
+  var VER='1.0.3';
   function cmp(a,b){a=String(a).split('.').map(Number);b=String(b).split('.').map(Number);for(var i=0;i<4;i++){var d=(a[i]||0)-(b[i]||0);if(d)return d<0?-1:1;}return 0;}
   window.CDO_VER=VER;window.cdoCmp=cmp;
   try{
@@ -32,6 +32,7 @@ header{background:var(--y);color:var(--on);padding:10px 16px;display:flex;align-
 header h1{font-size:18px;margin:0;font-weight:800;letter-spacing:.2px}
 header small{font-weight:600;opacity:.8}
 main{flex:1;overflow-y:auto;padding:14px 14px 96px;-webkit-overflow-scrolling:touch}
+body.kb nav{display:none}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{flex:1;background:none;border:0;color:var(--mut);font:700 13px system-ui;padding:12px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:3px}
 nav button b{font-size:20px;line-height:1}
@@ -350,6 +351,9 @@ function atualizar(manual){
 }
 
 /* ---------- eventos ---------- */
+(function(){function ed(t){return t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)&&t.type!=='file'&&t.type!=='checkbox'&&t.type!=='radio'&&t.type!=='button';}
+document.addEventListener('focusin',function(e){if(ed(e.target))document.body.classList.add('kb');});
+document.addEventListener('focusout',function(){setTimeout(function(){if(!ed(document.activeElement))document.body.classList.remove('kb');},120);});})();
 document.addEventListener('click',function(ev){
   var t=ev.target,b;
   if((b=t.closest('#nav button'))){show(b.getAttribute('data-t'));return;}
