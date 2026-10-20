@@ -32,6 +32,13 @@ jobs:
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
           sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/" android/app/build.gradle
           npx cap sync android
+          python3 - <<'PY'
+          p='android/app/src/main/AndroidManifest.xml'
+          t=open(p,encoding='utf-8').read()
+          add='<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-feature android:name="android.hardware.location.gps" android:required="false" />\n    '
+          assert t.count('<application')==1
+          open(p,'w',encoding='utf-8').write(t.replace('<application',add+'<application',1))
+          PY
           cat >> android/app/build.gradle <<EOF
 
           android {
